@@ -31,13 +31,14 @@ public class client {
 	  public static void main(String[] args) {
 		  Calendar now = Calendar.getInstance();
 		  // now.add(Calendar.DAY_OF_MONTH, -1);
-		  url = url+"&a="+now.get(Calendar.DAY_OF_MONTH);
-		  url = url+"&b="+now.get(Calendar.MONTH);
-		  url = url+"&c="+now.get(Calendar.YEAR);
-		  now.add(Calendar.MONTH, -4);
-		  url = url+"&d="+now.get(Calendar.DAY_OF_MONTH);
-		  url = url+"&e="+now.get(Calendar.MONTH);
+		  url = url+"&e="+now.get(Calendar.DAY_OF_MONTH);
+		  url = url+"&d="+now.get(Calendar.MONTH);
 		  url = url+"&f="+now.get(Calendar.YEAR);
+		  now.add(Calendar.MONTH, -4);
+		  url = url+"&b="+now.get(Calendar.DAY_OF_MONTH);
+		  url = url+"&a="+now.get(Calendar.MONTH);
+		  url = url+"&c="+now.get(Calendar.YEAR);
+		  System.out.println("URL: "+url);
 		  int count = 0;
 		  try {
 			  BufferedReader reader = new BufferedReader(new FileReader(filename));
