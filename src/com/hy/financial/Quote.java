@@ -23,7 +23,7 @@ public class Quote implements Comparable<Quote> {
 		String earlyDay,
 		float earlyPrice,
 		float change) {
-		this.symbol = symbol;
+		this.setSymbol(symbol);
 		this.lateDay = lateDay;
 		this.latePrice = latePrice;
 		this.earlyDay = earlyDay;
@@ -40,6 +40,22 @@ public class Quote implements Comparable<Quote> {
 	}
 
 	public String toString() {
-		return symbol + " " + lateDay + " " + latePrice + " " + earlyDay + " " + earlyPrice + " " + change;
+		return getSymbol() + " " + lateDay + " " + latePrice + " " + earlyDay + " " + earlyPrice + " " + change;
 	}
+
+    /**
+     * @return the symbol
+     */
+    String getSymbol()
+    {
+        return symbol;
+    }
+
+    /**
+     * @param symbol the symbol to set
+     */
+    void setSymbol(String symbol)
+    {
+        this.symbol = symbol;
+    }
 }

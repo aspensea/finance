@@ -9,7 +9,9 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.Calendar;
+import java.util.HashSet;
 import java.util.NoSuchElementException;
+import java.util.Set;
 import java.util.SortedSet;
 import java.util.StringTokenizer;
 import java.util.TreeSet;
@@ -26,7 +28,10 @@ import org.apache.http.impl.client.DefaultHttpClient;
 public class client {
 	  private static String url = "http://ichart.finance.yahoo.com/table.csv?&g=d&ignore=.csv";
 	  private static SortedSet<Quote> quoteSet = new TreeSet<Quote>();
-	  private static String filename = "new_symbols3";
+	  private static String filename = "symbol_pool";
+	  private static String portfolio_file = "portfolio";
+	  
+	  private static Set<String> portfolio = new HashSet<String>();
 	  
 	  public static void main(String[] args) {
 		  Calendar now = Calendar.getInstance();
@@ -41,8 +46,13 @@ public class client {
 		  System.out.println("URL: "+url);
 		  int count = 0;
 		  try {
-			  BufferedReader reader = new BufferedReader(new FileReader(filename));
-			  String s;
+              BufferedReader reader = new BufferedReader(new FileReader(portfolio_file));
+              String s;
+              while ((s = reader.readLine()) != null)
+              {
+                  portfolio.add(s);
+              }
+			  reader = new BufferedReader(new FileReader(filename));
 			  while ((s = reader.readLine()) != null)
 			  {
 				  System.out.print(++count+" ");
@@ -62,6 +72,8 @@ public class client {
 		  count = 0;
 		  for (Quote q: quoteSet)
 		  {
+		      if (portfolio.contains(q.getSymbol()))
+		          System.out.print("==> ");
 			  System.out.println(q.toString()+" "+ ++count);
 		  }
 	  }
