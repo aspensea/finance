@@ -50,13 +50,13 @@ public class client {
               String s;
               while ((s = reader.readLine()) != null)
               {
-                  portfolio.add(s);
+                  portfolio.add(s.trim());
               }
 			  reader = new BufferedReader(new FileReader(filename));
 			  while ((s = reader.readLine()) != null)
 			  {
 				  System.out.print(++count+" ");
-				  readOne(s);
+				  readOne(s.trim());
 			  }
 		  }
 		  catch (FileNotFoundException e) {
@@ -153,7 +153,7 @@ public class client {
 								todayPrice = Float.parseFloat(s);
 						}
 					}
-					if (count == 66) {
+					if (count == 62) {
 						StringTokenizer st = new StringTokenizer(line, ",");
 						for (int i=0;i<7; i++) {
 							String s = st.nextToken();
