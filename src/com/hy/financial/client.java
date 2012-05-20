@@ -30,6 +30,7 @@ public class client {
 	  private static SortedSet<Quote> quoteSet = new TreeSet<Quote>();
 	  private static String filename = "symbol_pool";
 	  private static String portfolio_file = "portfolio";
+	  private static int DAY_COUNT = 64;
 	  
 	  private static Set<String> portfolio = new HashSet<String>();
 	  
@@ -153,7 +154,7 @@ public class client {
 								todayPrice = Float.parseFloat(s);
 						}
 					}
-					if (count == 62) {
+					if (count == DAY_COUNT) {
 						StringTokenizer st = new StringTokenizer(line, ",");
 						for (int i=0;i<7; i++) {
 							String s = st.nextToken();
