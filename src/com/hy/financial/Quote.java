@@ -16,19 +16,22 @@ public class Quote implements Comparable<Quote> {
 	private String earlyDay;
 	private float earlyPrice;
 	private float change;
+	private boolean isBT;
 	
 	public Quote(String symbol, 
 		String lateDay,
 		float latePrice,
 		String earlyDay,
 		float earlyPrice,
-		float change) {
+		float change,
+		boolean isBT) {
 		this.setSymbol(symbol);
 		this.lateDay = lateDay;
 		this.latePrice = latePrice;
 		this.earlyDay = earlyDay;
 		this.earlyPrice = earlyPrice;
 		this.change = change;
+		this.isBT = isBT;
 	}
 	
 	/* (non-Javadoc)
@@ -40,7 +43,8 @@ public class Quote implements Comparable<Quote> {
 	}
 
 	public String toString() {
-		return getSymbol() + " " + lateDay + " " + latePrice + " " + earlyDay + " " + earlyPrice + " " + change;
+		return getSymbol() + " " + lateDay + " " + latePrice + " " + earlyDay + " " + earlyPrice + " " + change
+				+ (isBT ?" *BT* " : "");
 	}
 
     /**
