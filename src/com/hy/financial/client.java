@@ -31,7 +31,8 @@ public class client {
     private static String filename = "symbol_pool";
     private static String portfolio_file = "portfolio";
     private static String bt_pool = "bt_pool";
-    private static int DAY_COUNT = 25;
+    // 64 days are roughly 3 months.
+    private static int DAY_COUNT = 64;
 
     private static Set<String> portfolio = new HashSet<String>();
 
