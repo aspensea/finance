@@ -81,7 +81,7 @@ public class client {
         for (Quote q : quoteSet) {
             if (portfolio.contains(q.getSymbol()))
                 System.out.print("==> ");
-            System.out.println(q.toString() + " " + ++count);
+            System.out.println(q + " " + ++count);
         }
     }
 
@@ -137,6 +137,7 @@ public class client {
         int count = 0;
         float todayPrice = 1;
         float earlyPrice = 1;
+        float weekAgoPrice = 1;
         String today = null;
         String day65 = null;
         try {
@@ -155,6 +156,14 @@ public class client {
                             todayPrice = Float.parseFloat(s);
                     }
                 }
+                if (count == 6) {
+                    StringTokenizer st = new StringTokenizer(line, ",");
+                    for (int i = 0; i < 7; i++) {
+                        String s = st.nextToken();
+                        if (i == 6)
+                            weekAgoPrice = Float.parseFloat(s);
+                    }
+                }
                 if (count == DAY_COUNT) {
                     StringTokenizer st = new StringTokenizer(line, ",");
                     for (int i = 0; i < 7; i++) {
@@ -167,9 +176,10 @@ public class client {
                 }
                 count++;
             }
-            Quote q = new Quote(symbol, today, todayPrice, day65, earlyPrice, (todayPrice / earlyPrice * 100 - 100), isBT);
+            Quote q = new Quote(symbol, today, todayPrice, day65, earlyPrice, (todayPrice / earlyPrice * 100 - 100), isBT,
+                    (todayPrice / weekAgoPrice * 100 - 100));
             quoteSet.add(q);
-            System.out.println(q.toString());
+            System.out.println(q);
             return true;
         } catch (IOException e) {
             e.printStackTrace();
