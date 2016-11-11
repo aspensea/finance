@@ -1,0 +1,25 @@
+apply plugin: 'java'
+apply plugin: 'application'
+
+group = 'com.hy.financial'
+version = '1.0-SNAPSHOT'
+
+description = """funds analysis"""
+
+mainClassName = "com.hy.financial.client"
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    compile group: 'org.apache.httpcomponents', name: 'httpclient', version:'4.1.2'
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = [ 'src']
+        }
+    }
+}
