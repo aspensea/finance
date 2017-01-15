@@ -79,9 +79,7 @@ public class client {
         System.out.println("=======================================");
         count = 0;
         for (Quote q : quoteSet) {
-            if (portfolio.contains(q.getSymbol()))
-                System.out.print("==> ");
-            System.out.println(q + " " + ++count);
+            System.out.println(String.valueOf(++count) + '\t' + q.toString() + (portfolio.contains(q.getSymbol())? "*P*" : ""));
         }
     }
 

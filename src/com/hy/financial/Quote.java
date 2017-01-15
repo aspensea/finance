@@ -47,9 +47,9 @@ public class Quote implements Comparable<Quote> {
 
 	@Override
 	public String toString() {
-		return getSymbol() + " " + lateDay + " " + latePrice + " " + earlyDay + " " + earlyPrice + " " + change
-				+ " " + weekAgoDiff
-				+ (isBT ?" *BT* " : "");
+		return getSymbol() + "\t" + lateDay + "\t" + latePrice + "\t" + earlyDay + "\t" + earlyPrice + "\t" + change
+				+ "\t" + weekAgoDiff
+				+ (isBT ?"\t*BT*" : "\t");
 	}
 
     /**
