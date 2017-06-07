@@ -20,13 +20,15 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
+import org.jsoup.Jsoup;
 
 /**
  * @author hyang
  *         Created on: Aug 22, 2011
  */
 public class client {
-    private static String url = "http://ichart.finance.yahoo.com/table.csv?&g=d&ignore=.csv";
+    // private static String url = "http://ichart.finance.yahoo.com/table.csv?&g=d&ignore=.csv";
+    private static String url = "https://finance.yahoo.com/quote/SPY/history";
     private static SortedSet<Quote> quoteSet = new TreeSet<Quote>();
     private static String filename = "symbol_pool";
     private static String portfolio_file = "portfolio";
@@ -38,6 +40,7 @@ public class client {
 
     public static void main(String[] args) {
         Calendar now = Calendar.getInstance();
+/*
         // now.add(Calendar.DAY_OF_MONTH, -1);
         url = url + "&e=" + now.get(Calendar.DAY_OF_MONTH);
         url = url + "&d=" + now.get(Calendar.MONTH);
@@ -46,6 +49,7 @@ public class client {
         url = url + "&b=" + now.get(Calendar.DAY_OF_MONTH);
         url = url + "&a=" + now.get(Calendar.MONTH);
         url = url + "&c=" + now.get(Calendar.YEAR);
+*/
         System.out.println("URL: " + url);
         int count = 0;
         BufferedReader reader;
@@ -95,7 +99,8 @@ public class client {
         }
         if (rd == null) {
             HttpClient client = new DefaultHttpClient();
-            HttpGet get = new HttpGet(url + "&s=" + symbol);
+            // HttpGet get = new HttpGet(url + "&s=" + symbol);
+            HttpGet get = new HttpGet(url);
             try {
                 FileWriter outFile = new FileWriter(fileName);
                 writer = new BufferedWriter(outFile);
@@ -131,6 +136,20 @@ public class client {
      * @return true for good, false for bad
      */
     private static boolean readContent(String symbol, BufferedReader rd, BufferedWriter writer, boolean isBT) {
+
+        StringBuilder sb = new StringBuilder();
+
+        try {
+            String line;
+            while ((line = rd.readLine())!= null) {
+                sb.append(line+'\n');
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        String parsed = Jsoup.parse(sb.toString()).text();
+
         String line = "";
         int count = 0;
         float todayPrice = 1;
