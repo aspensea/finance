@@ -28,13 +28,13 @@ import org.jsoup.Jsoup;
  */
 public class client {
     // private static String url = "http://ichart.finance.yahoo.com/table.csv?&g=d&ignore=.csv";
-    private static String url = "https://finance.yahoo.com/quote/SPY/history";
+    private static String url = "https://finance.yahoo.com/quote/";
     private static SortedSet<Quote> quoteSet = new TreeSet<Quote>();
     private static String filename = "symbol_pool";
     private static String portfolio_file = "portfolio";
     private static String bt_pool = "bt_pool";
     // 64 days are roughly 3 months.
-    private static int DAY_COUNT = 64;
+    private static int DAY_COUNT = 63;
 
     private static Set<String> portfolio = new HashSet<String>();
 
@@ -87,23 +87,25 @@ public class client {
         }
     }
 
-    private static void readOne(String symbol, boolean isBT) {
+    private static void readOne(String symbol, boolean isBT) throws IOException {
         BufferedReader rd = null;
         BufferedWriter writer = null;
         String fileName = "data/" + symbol + ".txt";
+        StringBuilder sb = new StringBuilder();
+
         try {
             FileReader fr = new FileReader(fileName);
             rd = new BufferedReader(fr);
         } catch (FileNotFoundException e) {
             System.out.println("Reading " + symbol + " from the internet...");
+            FileWriter outFile = new FileWriter(fileName);
+            writer = new BufferedWriter(outFile);
         }
         if (rd == null) {
             HttpClient client = new DefaultHttpClient();
             // HttpGet get = new HttpGet(url + "&s=" + symbol);
-            HttpGet get = new HttpGet(url);
+            HttpGet get = new HttpGet(url+symbol+"/history");
             try {
-                FileWriter outFile = new FileWriter(fileName);
-                writer = new BufferedWriter(outFile);
                 HttpResponse response = client.execute(get);
                 rd = new BufferedReader(new InputStreamReader(
                         response.getEntity().getContent()));
@@ -112,19 +114,24 @@ public class client {
             }
         }
 
-        try {
-            boolean result = readContent(symbol, rd, writer, isBT);
+        String line;
+        while ((line = rd.readLine())!= null) {
+            sb.append(line+'\n');
+            if (writer != null) {
+                writer.write(line + '\n');
+            }
+        }
 
+        try {
+            boolean result = readContent(symbol, sb.toString(), isBT);
+            if (!result) {
+                System.out.println("Please investigate " + symbol);
+            }
             rd.close();
             if (writer != null) {
                 writer.close();
             }
 
-            if (!result) {
-                // bad file - delete it.
-                File file = new File(fileName);
-                file.delete();
-            }
         } catch (IOException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -135,75 +142,71 @@ public class client {
     /*
      * @return true for good, false for bad
      */
-    private static boolean readContent(String symbol, BufferedReader rd, BufferedWriter writer, boolean isBT) {
+    private static boolean readContent(String symbol, final String content, boolean isBT) {
 
-        StringBuilder sb = new StringBuilder();
+        String today = null;
+        float todayPrice = 0;
 
-        try {
-            String line;
-            while ((line = rd.readLine())!= null) {
-                sb.append(line+'\n');
+        // For some reason Yahoo doesn't have the current day price in the range.
+        if (symbol.length() == 5) {
+            final int todayIndex = content.indexOf("D(ib)\" data-reactid=\"36\">");
+            if (todayIndex == -1) {
+                System.err.println(symbol + " can't locate today's price");
+                return false;
             }
-        } catch (IOException e) {
-            e.printStackTrace();
+            String tempStr = content.substring(content.indexOf("D(ib)\" data-reactid=\"36\">"));
+
+            todayPrice = Float.parseFloat(tempStr.substring(tempStr.indexOf(">") + 1, tempStr.indexOf("<")));
+            today = "today";
         }
 
-        String parsed = Jsoup.parse(sb.toString()).text();
+        String parsed = Jsoup.parse(content).text();
+
+        if (!parsed.contains(" Volume ")) {
+            System.out.println("Unable to parse " + symbol + ": "  + parsed);
+            return false;
+        }
+        parsed = parsed.substring(parsed.indexOf(" Volume ")+8, parsed.length());
+        if (!parsed.contains(" *Close ")) {
+            System.out.println("Unable to parse " + symbol + ": "  + parsed);
+            return false;
+        }
+        parsed = parsed.substring(0, parsed.indexOf(" *Close "));
+        String[] quoteData = parsed.split(" ");
 
         String line = "";
         int count = 0;
-        float todayPrice = 1;
         float earlyPrice = 1;
         float weekAgoPrice = 1;
-        String today = null;
         String day65 = null;
-        try {
-            while ((line = rd.readLine()) != null) {
-                if (writer != null) {
-                    writer.write(line);
-                    writer.write("\n");
-                }
-                if (count == 1) {
-                    StringTokenizer st = new StringTokenizer(line, ",");
-                    for (int i = 0; i < 7; i++) {
-                        String s = st.nextToken();
-                        if (i == 0)
-                            today = s;
-                        if (i == 6)
-                            todayPrice = Float.parseFloat(s);
-                    }
-                }
-                if (count == 6) {
-                    StringTokenizer st = new StringTokenizer(line, ",");
-                    for (int i = 0; i < 7; i++) {
-                        String s = st.nextToken();
-                        if (i == 6)
-                            weekAgoPrice = Float.parseFloat(s);
-                    }
-                }
-                if (count == DAY_COUNT) {
-                    StringTokenizer st = new StringTokenizer(line, ",");
-                    for (int i = 0; i < 7; i++) {
-                        String s = st.nextToken();
-                        if (i == 0)
-                            day65 = s;
-                        if (i == 6)
-                            earlyPrice = Float.parseFloat(s);
-                    }
-                }
-                count++;
-            }
-            Quote q = new Quote(symbol, today, todayPrice, day65, earlyPrice, (todayPrice / earlyPrice * 100 - 100), isBT,
-                    (todayPrice / weekAgoPrice * 100 - 100));
-            quoteSet.add(q);
-            System.out.println(q);
-            return true;
-        } catch (IOException e) {
-            e.printStackTrace();
-            return false;
-        } catch (NoSuchElementException e) {
-            System.out.println("read bad content: " + line);
-            return false;
+        int quoteIndex = 0;
+        if (symbol.length() == 5) {
+            count++;
         }
+        while (quoteIndex + 9 <= quoteData.length) {
+            if (quoteIndex + 5 <= quoteData.length && "Dividend".equals(quoteData[quoteIndex+4])) {
+                quoteIndex = quoteIndex + 5;
+            }
+            if (count == 0) {
+                today = quoteData[quoteIndex] + " " + quoteData[quoteIndex+1] + " " + quoteData[quoteIndex+2];
+                todayPrice = Float.parseFloat(quoteData[quoteIndex+7]);
+            }
+            if (count == 5) {
+                weekAgoPrice = Float.parseFloat(quoteData[quoteIndex+7]);
+            }
+            if (count == DAY_COUNT) {
+                day65= quoteData[quoteIndex] + " " + quoteData[quoteIndex+1] + " " + quoteData[quoteIndex+2];
+                earlyPrice = Float.parseFloat(quoteData[quoteIndex+7]);
+                break;
+            }
+            count++;
+            quoteIndex = quoteIndex + 9;
+        }
+        Quote q = new Quote(symbol, today, todayPrice, day65, earlyPrice, weekAgoPrice,
+                (todayPrice / earlyPrice * 100 - 100), isBT,
+                (todayPrice / weekAgoPrice * 100 - 100));
+        quoteSet.add(q);
+        System.out.println(q);
+        return true;
     }
 }

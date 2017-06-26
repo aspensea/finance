@@ -15,6 +15,7 @@ public class Quote implements Comparable<Quote> {
 	private float latePrice;
 	private String earlyDay;
 	private float earlyPrice;
+	private float weekAgoPrice;
 	private float change;
 	private boolean isBT;
 	private float weekAgoDiff;
@@ -24,6 +25,7 @@ public class Quote implements Comparable<Quote> {
 		float latePrice,
 		String earlyDay,
 		float earlyPrice,
+		float weekAgoPrice,
 		float change,
 		boolean isBT,
 				 float weekAgoDiff) {
@@ -32,6 +34,7 @@ public class Quote implements Comparable<Quote> {
 		this.latePrice = latePrice;
 		this.earlyDay = earlyDay;
 		this.earlyPrice = earlyPrice;
+		this.weekAgoPrice = weekAgoPrice;
 		this.change = change;
 		this.isBT = isBT;
 		this.weekAgoDiff = weekAgoDiff;
@@ -48,7 +51,7 @@ public class Quote implements Comparable<Quote> {
 	@Override
 	public String toString() {
 		return getSymbol() + "\t" + lateDay + "\t" + latePrice + "\t" + earlyDay + "\t" + earlyPrice + "\t" + change
-				+ "\t" + weekAgoDiff
+				+ "\t" + weekAgoPrice + "\t" + weekAgoDiff
 				+ (isBT ?"\t*BT*" : "\t");
 	}
 
