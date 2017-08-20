@@ -149,12 +149,15 @@ public class client {
 
         // For some reason Yahoo doesn't have the current day price in the range.
         if (symbol.length() == 5) {
-            final int todayIndex = content.indexOf("D(ib)\" data-reactid=\"36\">");
+            int todayIndex = content.indexOf("D(ib)\" data-reactid=\"36\">");
             if (todayIndex == -1) {
-                System.err.println(symbol + " can't locate today's price");
-                return false;
+                todayIndex = content.indexOf("D(ib)\" data-reactid=\"35\">");
+                if (todayIndex == -1) {
+                    System.err.println(symbol + " can't locate today's price");
+                    return false;
+                }
             }
-            String tempStr = content.substring(content.indexOf("D(ib)\" data-reactid=\"36\">"));
+            String tempStr = content.substring(todayIndex);
 
             todayPrice = Float.parseFloat(tempStr.substring(tempStr.indexOf(">") + 1, tempStr.indexOf("<")));
             today = "today";
