@@ -8,13 +8,7 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.util.Calendar;
-import java.util.HashSet;
-import java.util.NoSuchElementException;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.StringTokenizer;
-import java.util.TreeSet;
+import java.util.*;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -148,21 +142,34 @@ public class client {
         float todayPrice = 0;
 
         // For some reason Yahoo doesn't have the current day price in the range.
-        if (symbol.length() == 5) {
-            int todayIndex = content.indexOf("D(ib)\" data-reactid=\"36\">");
+/*        if (symbol.length() == 5) {
+            int todayIndex = -1; content.indexOf("D(ib)\" data-reactid=\"36\">");
             if (todayIndex == -1) {
                 todayIndex = content.indexOf("D(ib)\" data-reactid=\"35\">");
                 if (todayIndex == -1) {
-                    System.err.println(symbol + " can't locate today's price");
-                    return false;
+                    todayIndex = content.indexOf("D(ib)\" data-reactid=\"15\">");
+                    if (todayIndex == -1) {
+                        System.err.println(symbol + " can't locate today's price");
+                        return false;
+                    }
                 }
             }
             String tempStr = content.substring(todayIndex);
 
-            todayPrice = Float.parseFloat(tempStr.substring(tempStr.indexOf(">") + 1, tempStr.indexOf("<")));
+            tempStr = tempStr.substring(tempStr.indexOf(">")+1);
+            if (tempStr.startsWith("<!")) {
+                tempStr = tempStr.substring(tempStr.indexOf(">")+1);
+            }
+
+            try {
+                todayPrice = Float.parseFloat(tempStr.substring(0, tempStr.indexOf("<")));
+            } catch (NumberFormatException e) {
+                System.out.println("Cannot parse to float: " + tempStr);
+                return false;
+            }
             today = "today";
         }
-
+*/
         String parsed = Jsoup.parse(content).text();
 
         if (!parsed.contains(" Volume ")) {
@@ -183,27 +190,40 @@ public class client {
         float weekAgoPrice = 1;
         String day65 = null;
         int quoteIndex = 0;
-        if (symbol.length() == 5) {
+/*        if (symbol.length() == 5) {
             count++;
         }
+*/
         while (quoteIndex + 9 <= quoteData.length) {
             if (quoteIndex + 5 <= quoteData.length && "Dividend".equals(quoteData[quoteIndex+4])) {
                 quoteIndex = quoteIndex + 5;
             }
-            if (count == 0) {
-                today = quoteData[quoteIndex] + " " + quoteData[quoteIndex+1] + " " + quoteData[quoteIndex+2];
-                todayPrice = Float.parseFloat(quoteData[quoteIndex+7]);
+            if (quoteIndex + 5 <= quoteData.length && "Dividend".equals(quoteData[quoteIndex+4])) {
+                quoteIndex = quoteIndex + 5;
             }
-            if (count == 5) {
-                weekAgoPrice = Float.parseFloat(quoteData[quoteIndex+7]);
+            int offset = 0;
+            if (quoteIndex + 5 <= quoteData.length && "Split".equals(quoteData[quoteIndex+5])) {
+                offset = 6;
             }
-            if (count == DAY_COUNT) {
-                day65= quoteData[quoteIndex] + " " + quoteData[quoteIndex+1] + " " + quoteData[quoteIndex+2];
-                earlyPrice = Float.parseFloat(quoteData[quoteIndex+7]);
-                break;
+            try {
+                if (count == 0) {
+                    today = quoteData[quoteIndex] + " " + quoteData[quoteIndex + 1] + " " + quoteData[quoteIndex + 2];
+                    todayPrice = Float.parseFloat(quoteData[quoteIndex + offset + 7]);
+                }
+                if (count == 5) {
+                    weekAgoPrice = Float.parseFloat(quoteData[quoteIndex + offset + 7]);
+                }
+                if (count == DAY_COUNT) {
+                    day65 = quoteData[quoteIndex] + " " + quoteData[quoteIndex + 1] + " " + quoteData[quoteIndex + 2];
+                    earlyPrice = Float.parseFloat(quoteData[quoteIndex + offset + 7]);
+                    break;
+                }
+            } catch (NumberFormatException e) {
+                System.out.println("Cannot parse to float at " + quoteIndex + "/" + quoteData[quoteIndex+offset+7] + ": " + Arrays.toString(quoteData));
+                return false;
             }
             count++;
-            quoteIndex = quoteIndex + 9;
+            quoteIndex = quoteIndex + offset + 9;
         }
         Quote q = new Quote(symbol, today, todayPrice, day65, earlyPrice, weekAgoPrice,
                 (todayPrice / earlyPrice * 100 - 100), isBT,
